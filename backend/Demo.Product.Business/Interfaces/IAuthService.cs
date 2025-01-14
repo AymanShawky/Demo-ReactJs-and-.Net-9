@@ -1,8 +1,7 @@
-﻿namespace Demo.Product.Business
+﻿namespace Demo.Product.Business;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        string? Authenticate(string username, string password);
-        string? RefreshToken(string token);
-    }
+    string? Authenticate(string username, string password);
+    string? RefreshToken(string token);
 }
