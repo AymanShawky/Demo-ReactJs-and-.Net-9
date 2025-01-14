@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Role> Roles { get; set; }
 
+    public DbSet<Entities.Product> Products { get; set; }
+    public DbSet<Entities.ProductRating> Ratings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -80,17 +82,20 @@ public class AppDbContext : DbContext
             .WithMany(u => u.Roles)
             .UsingEntity(j => j.ToTable("UserRoles"));
 
-        // data seeding
-        modelBuilder.Entity<User>()
-            .HasData(
-                new User { Id = 1, Username = "admin", PasswordHash = BCrypt.Net.BCrypt.HashPassword("test") },
-                new User { Id = 2, Username = "user", PasswordHash = BCrypt.Net.BCrypt.HashPassword("test") }
-            );
 
-        modelBuilder.Entity<Role>()
-            .HasData(
-                new Role { Id = 1, RoleName = "Admin", RoleDescription = "Admin role" },
-                new Role { Id = 2, RoleName = "User", RoleDescription = "User role" }
-            );
+
+        // comment this code because every migration generate new records for the hash
+        //// data seeding
+        //modelBuilder.Entity<User>()
+        //    .HasData(
+        //        new User { Id = 1, Username = "admin", PasswordHash = BCrypt.Net.BCrypt.HashPassword("test") },
+        //        new User { Id = 2, Username = "user", PasswordHash = BCrypt.Net.BCrypt.HashPassword("test") }
+        //    );
+
+        //modelBuilder.Entity<Role>()
+        //    .HasData(
+        //        new Role { Id = 1, RoleName = "Admin", RoleDescription = "Admin role" },
+        //        new Role { Id = 2, RoleName = "User", RoleDescription = "User role" }
+        //    );
     }
 }

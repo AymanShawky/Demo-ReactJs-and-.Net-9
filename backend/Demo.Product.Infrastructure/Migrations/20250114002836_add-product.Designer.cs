@@ -3,6 +3,7 @@ using Demo.Product.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Demo.Product.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114002836_add-product")]
+    partial class addproduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,31 +53,6 @@ namespace Demo.Product.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Demo.Product.Infrastructure.Entities.ProductRating", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<float>("Rate")
-                        .HasColumnType("real");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId")
-                        .IsUnique();
-
-                    b.ToTable("ProductRating");
-                });
-
             modelBuilder.Entity("Demo.Product.Infrastructure.Entities.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -98,6 +76,20 @@ namespace Demo.Product.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            RoleDescription = "Admin role",
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            RoleDescription = "User role",
+                            RoleName = "User"
+                        });
                 });
 
             modelBuilder.Entity("Demo.Product.Infrastructure.Entities.User", b =>
@@ -124,6 +116,20 @@ namespace Demo.Product.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            PasswordHash = "$2a$11$emrdkEBOdN8TyJleDN78COEg8w5nhII3XY82V7yyZNX5PVMSsfa9e",
+                            Username = "admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            PasswordHash = "$2a$11$FxyPbObgICDN4a9ntB3lauJ.zYRg3WxxhLk8UMsf4ilGwe2lKroNG",
+                            Username = "user"
+                        });
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -141,15 +147,28 @@ namespace Demo.Product.Infrastructure.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Demo.Product.Infrastructure.Entities.ProductRating", b =>
+            modelBuilder.Entity("Demo.Product.Infrastructure.Entities.Product", b =>
                 {
-                    b.HasOne("Demo.Product.Infrastructure.Entities.Product", "Product")
-                        .WithOne("Rating")
-                        .HasForeignKey("Demo.Product.Infrastructure.Entities.ProductRating", "ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.OwnsOne("Demo.Product.Infrastructure.Entities.ProductRating", "Rating", b1 =>
+                        {
+                            b1.Property<int>("ProductId")
+                                .HasColumnType("int");
 
-                    b.Navigation("Product");
+                            b1.Property<int>("Count")
+                                .HasColumnType("int");
+
+                            b1.Property<float>("Rate")
+                                .HasColumnType("real");
+
+                            b1.HasKey("ProductId");
+
+                            b1.ToTable("Products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductId");
+                        });
+
+                    b.Navigation("Rating");
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -165,11 +184,6 @@ namespace Demo.Product.Infrastructure.Migrations
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Demo.Product.Infrastructure.Entities.Product", b =>
-                {
-                    b.Navigation("Rating");
                 });
 #pragma warning restore 612, 618
         }
