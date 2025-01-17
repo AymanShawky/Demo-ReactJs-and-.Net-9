@@ -9,6 +9,8 @@ using Demo.Product.API.Extensions;
 using Demo.Product.API.Middelwares;
 using Demo.Product.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Demo.Product.API.BackgroundServices;
+using Demo.Product.Business.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,22 +65,36 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")) );
-  
+
+builder.Services.AddHttpClient();
+builder.Services.AddHostedService<LoadProductsService>();
 
 // Register IAuthService implementation
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Apply the CORS policy
+app.UseCors("AllowAll");
 
 
-using (var scope = app.Services.CreateScope())
-{
-    var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
-    app.RegisterAuthEnpoint(authService);
-}
-
+app.RegisterAuthEnpoints();
 app.RegisterProductEnpoint();
 
 // Configure the HTTP request pipeline.

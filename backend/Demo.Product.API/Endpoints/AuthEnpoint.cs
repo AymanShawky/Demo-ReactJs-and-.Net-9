@@ -1,4 +1,7 @@
 ﻿using Demo.Product.Business;
+using Demo.Product.Business.DTOs;
+using Demo.Product.Business.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Demo.Product.API.Endpoints
 {
@@ -6,26 +9,26 @@ namespace Demo.Product.API.Endpoints
     {
 
         public record AuthenticateRequest(string Username, string Password);
-        public record AuthenticateResponse(string Token);
 
-        public static void RegisterAuthEnpoint(this WebApplication app, IAuthService authService)
+        public static void RegisterAuthEnpoints(this WebApplication app)
         {
-            app.MapPost("/auth", async (AuthenticateRequest request) =>
+            app.MapPost("/auth/login", async (AuthenticateRequest request, [FromServices] IAuthService authService) =>
             {
                 if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
                 {
                     return Results.BadRequest("Invalid request data");
                 }
 
-                var token = authService.Authenticate(request.Username, request.Password);
-                if (token == null)
+                var authResponse = await authService.Authenticate(request.Username, request.Password);
+                if (authResponse == null)
                 {
                     return Results.Unauthorized();
                 }
-                return Results.Ok(new AuthenticateResponse(token));
+
+                return Results.Ok(authResponse);
             });
 
-            app.MapPost("/auth/refresh", (string refreshToken) =>
+            app.MapPost("/auth/refresh", (string refreshToken, [FromServices]IAuthService authService) =>
             {
                 var newToken = authService.RefreshToken(refreshToken);
                 if (newToken == null)

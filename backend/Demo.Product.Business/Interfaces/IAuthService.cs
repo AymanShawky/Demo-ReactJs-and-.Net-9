@@ -1,7 +1,9 @@
-﻿namespace Demo.Product.Business;
+﻿using Demo.Product.Business.DTOs;
+
+namespace Demo.Product.Business;
 
 public interface IAuthService
 {
-    string? Authenticate(string username, string password);
-    string? RefreshToken(string token);
+    Task<AuthResponseDto> Authenticate(string username, string password);
+    AuthResponseDto? RefreshToken(string token);
 }

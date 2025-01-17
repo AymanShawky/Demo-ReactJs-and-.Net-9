@@ -9,4 +9,6 @@ public class  Role
     public string? RoleDescription { get; set; }
 
     public virtual List<User>? Users { get; set; }
+
+    public virtual List<UserRole>? UserRoles { get; set; }
 }

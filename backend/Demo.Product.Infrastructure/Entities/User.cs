@@ -8,5 +8,6 @@ public class User
 
     public string PasswordHash { get; set; }
 
+    public virtual List<UserRole>? UserRoles { get; set; }
     public virtual List<Role>? Roles { get; set; }
 }
