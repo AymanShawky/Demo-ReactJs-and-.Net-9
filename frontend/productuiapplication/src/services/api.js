@@ -12,7 +12,7 @@ const api = axios.create({
 // Request interceptor to add Authorization token to the request headers
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access-token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -29,16 +29,16 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response && error.response.status === 401) {
       // Unauthorized request (token expired or invalid)
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem('refresh-token');
       if (refreshToken) {
         try {
-          const response = await axios.post('http://localhost:5001/auth/refresh', { refresh_token: refreshToken });
+          const response = await axios.post('http://localhost:5001/auth/refresh', { refreshToken: refreshToken });
           const { access_token } = response.data;
             
           console.log(access_token);
             
           // Store the new access token
-          localStorage.setItem('access_token', access_token.Token);
+          localStorage.setItem('access-token', access_token.Token);
 
           // Retry the original request with the new access token
           error.config.headers['Authorization'] = `Bearer ${access_token}`;
@@ -46,15 +46,15 @@ api.interceptors.response.use(
         } catch (e) {
           console.error('Failed to refresh token. Logging out...');
           // If refresh token is invalid or expired, log the user out
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('access-token');
+          localStorage.removeItem('refresh-token');
           return Promise.reject(error);
         }
       } else {
         // If there's no refresh token, log the user out
         console.error('No refresh token found. Logging out...');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('access-token');
+        localStorage.removeItem('refresh-token');
         return Promise.reject(error);
       }
     }

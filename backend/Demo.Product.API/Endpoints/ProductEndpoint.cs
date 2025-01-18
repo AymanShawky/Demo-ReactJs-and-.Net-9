@@ -1,7 +1,6 @@
-﻿using Demo.Product.Business;
-using Demo.Product.Business.DTOs;
+﻿using Demo.Product.Business.DTOs;
 using Demo.Product.Business.Interfaces;
-using Demo.Product.Business.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Demo.Product.API.Endpoints;
@@ -14,35 +13,43 @@ public static class ProductEnpoint
 
     public static void RegisterProductEnpoint(this WebApplication app)
     {
-       
+        var productGroup = app.MapGroup("/products");
+
         // getting product by id
-        app.MapGet("/Product/{productId}", async (int productId, IProductService productService) =>
+        productGroup.MapGet("/{productId}", async Task<Results<NotFound, Ok<ProductDto>>> (int productId, IProductService productService) =>
         {
             var product = await productService.GetProductById(productId);
-            return Results.Ok(new ProductResponse(product.Title));
+
+            if (product == null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Ok(product);
         })
             .WithName("GetProductById")
-            .RequireAuthorization("User");
+            .RequireAuthorization("UserOrAdmin");
 
-        // get all products
-        app.MapGet("/Product", async (IProductService productService) =>
+        // get all products with pagination
+        productGroup.MapGet("", async (int pageNumber, int pageSize, IProductService productService) =>
         {
             var products = await productService.GetAllProducts();
+            var paginatedProducts = products.Skip((pageNumber - 1) * pageSize).Take(pageSize);
 
-            return Results.Ok(products);
+            return Results.Ok(paginatedProducts);
         })
-            .WithName("GetAllProducts");
-           // .RequireAuthorization("User"); ;
+            .WithName("GetAllProducts")
+            .RequireAuthorization("UserOrAdmin");
 
         //create new product
-        app.MapPost("/product", async ([FromBody] ProductDto model, IProductService productService) =>
+        productGroup.MapPost("", async ([FromBody] ProductDto model, IProductService productService) =>
         {
             await productService.AddProduct(model);
+            var createdProduct = await productService.GetProductById(model.Id);
 
-            return Results.Ok();
+            return Results.Created($"/products/{createdProduct.Id}", createdProduct);
         })
             .WithName("CreateProduct")
             .RequireAuthorization("Admin");
-        
     }
 }

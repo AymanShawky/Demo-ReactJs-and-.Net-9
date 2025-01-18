@@ -61,7 +61,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+// Add authorization services
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")) );

@@ -87,7 +87,7 @@ public sealed class AuthService : IAuthService
             audience: _configuration["Jwt:Audience"],
             claims: new List<Claim>() 
             {
-                new Claim(type: "Role", value: role) 
+                new Claim(ClaimTypes.Role, value: role) 
             },
             expires: DateTime.Now.AddMinutes(30),
             signingCredentials: signinCredentials
