@@ -19,16 +19,34 @@ public sealed class ProductService : IProductService
         this.dbContext = dbContext;
     }
 
-    // gat all products
-    public async Task<IEnumerable<ProductDto>> GetAllProducts()
+    // get all products with pagination
+    public async Task<GetProductsResponse> GetProducts(int pageNumber = 1, int pageSize = 5)
     {
-        var products = await dbContext.Products.ToListAsync();
-        
-        if (products == null) 
-            return Enumerable.Empty<ProductDto>();
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize == default || pageSize > 5) pageSize = 5;
 
+        var totalProductCount = await GetProductCount();
+        int totalPageCount = (int)Math.Ceiling((double)totalProductCount / pageSize);
 
-        return products.MapToDto();
+        //validate pageNumber
+        if (totalPageCount < pageNumber)
+            pageNumber = totalPageCount;
+
+        var products = totalProductCount == 0 ? [] : await dbContext.Products
+                                      .Skip((pageNumber - 1) * pageSize)
+                                      .Take(pageSize)
+                                      .ToListAsync();
+        if (products == null)
+            products = [];
+
+        return new GetProductsResponse()
+        {
+            Products = products.MapToDto(),
+            CurrentPage = pageNumber,
+            PageSize = pageSize,
+            TotalProductsCount = totalProductCount,
+            TotalPagesCount = (int)Math.Ceiling((double)totalProductCount / pageSize)
+        };
     }
 
     // get product by id
@@ -60,5 +78,35 @@ public sealed class ProductService : IProductService
 
         await dbContext.Products.AddAsync(entity);
         await dbContext.SaveChangesAsync();
+    }
+
+
+    // update product
+    public async Task UpdateProduct(ProductDto model)
+    {
+        if (model is null)
+            throw new ValidationException($"Product cannot by null.");
+
+        var entity = await dbContext.Products.FindAsync(model.Id);
+
+        if (entity is null)
+            throw new ValidationException($"Product with id {model.Id} not found");
+
+        entity.Title = model.Title;
+        entity.Price = model.Price;
+        entity.Description = model.Description;
+        entity.Category = model.Category;
+        entity.Image = model.ImageUrl;
+
+        dbContext.Products.Update(entity);
+
+        await dbContext.SaveChangesAsync();
+    }
+
+
+    //  get total count of products
+    private async Task<int> GetProductCount()
+    {
+        return await dbContext.Products.CountAsync();
     }
 }

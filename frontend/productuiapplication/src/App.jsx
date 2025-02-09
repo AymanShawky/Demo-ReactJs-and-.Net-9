@@ -4,6 +4,8 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import ProtectedRoute from "./hoc/ProtectedRoute";
 import useAuth from "./hooks/useAuth";
+import Layout from "./components/layout/Layout";
+import Product from "./components/product/index";
 
 const App = () => {
   const { loading, isAuthenticated } = useAuth();
@@ -16,17 +18,29 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <Home />
+            </Layout>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route
           path="/home"
           element={
             <ProtectedRoute
-              element={<Home />}
+              element={
+                <Layout>
+                  <Home />
+                </Layout>
+              }
               isAuthenticated={isAuthenticated}
             />
           }
         />
+        <Route path="/product" element={<Product />} />
       </Routes>
     </Router>
   );

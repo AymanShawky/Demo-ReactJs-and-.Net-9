@@ -30,7 +30,9 @@ internal static class ProductExtensions
     // Extension method to convert List<Entities.Product> to List<ProductDto>
     internal static List<ProductDto> MapToDto(this List<Infrastructure.Entities.Product> products)
     {
-        return products.Select(product => product.MapToDto()).ToList();
+        return 
+        products == null ? 
+        [] : products.Select(product => product.MapToDto()).ToList();
     }
 
     // Extension method to convert ProductDto to Entities.Product

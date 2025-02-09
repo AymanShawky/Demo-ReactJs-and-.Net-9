@@ -1,6 +1,6 @@
-// services/auth.js
 import api from "../services/api";
-// This function logs the user out by removing the tokens from localStorage
+
+// removing the tokens from localStorage
 export const logout = () => {
     localStorage.removeItem('access-token');
     localStorage.removeItem('refresh-token');

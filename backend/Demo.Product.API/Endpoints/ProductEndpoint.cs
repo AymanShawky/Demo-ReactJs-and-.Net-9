@@ -13,10 +13,11 @@ public static class ProductEnpoint
 
     public static void RegisterProductEnpoint(this WebApplication app)
     {
-        var productGroup = app.MapGroup("/products");
+        var productGroup = app.MapGroup("/product");
+        var productGroupWithId = productGroup.MapGroup("/{productId:int}");
 
         // getting product by id
-        productGroup.MapGet("/{productId}", async Task<Results<NotFound, Ok<ProductDto>>> (int productId, IProductService productService) =>
+        productGroupWithId.MapGet("", async Task<Results<NotFound, Ok<ProductDto>>> (int productId, IProductService productService) =>
         {
             var product = await productService.GetProductById(productId);
 
@@ -28,15 +29,17 @@ public static class ProductEnpoint
             return TypedResults.Ok(product);
         })
             .WithName("GetProductById")
+            .WithOpenApi()
+            .WithSummary("Get product by id")
+            .WithDescription("Get product by providing an id")
             .RequireAuthorization("UserOrAdmin");
 
         // get all products with pagination
-        productGroup.MapGet("", async (int pageNumber, int pageSize, IProductService productService) =>
+        productGroup.MapGet("", async Task<Ok<GetProductsResponse>> (int page, int size, IProductService productService) =>
         {
-            var products = await productService.GetAllProducts();
-            var paginatedProducts = products.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            var productsResponse = await productService.GetProducts(page, size);
 
-            return Results.Ok(paginatedProducts);
+            return TypedResults.Ok(productsResponse);
         })
             .WithName("GetAllProducts")
             .RequireAuthorization("UserOrAdmin");
@@ -50,6 +53,16 @@ public static class ProductEnpoint
             return Results.Created($"/products/{createdProduct.Id}", createdProduct);
         })
             .WithName("CreateProduct")
+            .RequireAuthorization("Admin");
+
+        // update product
+        productGroupWithId.MapPut("", async (int productId, [FromBody] ProductDto model, IProductService productService) =>
+        {
+            await productService.UpdateProduct(model);
+            var updatedProduct = await productService.GetProductById(model.Id);
+            return Results.Ok(updatedProduct);
+        })
+            .WithName("UpdateProduct")
             .RequireAuthorization("Admin");
     }
 }

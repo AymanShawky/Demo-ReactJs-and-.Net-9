@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Logout from "./Logout";
+import api from "../services/api";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -10,18 +11,8 @@ const Home = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPagesCount, setTotalPagesCount] = useState(1);
   const itemsPerPage = 5; // Number of products per page
-
-  // Calculate total pages
-  const totalPages = Math.ceil(products.length / itemsPerPage);
-
-  // Calculate the products to display on the current page
-  const indexOfLastProduct = currentPage * itemsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = products.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
 
   // Function to handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -50,7 +41,6 @@ const Home = () => {
 
   const fetchProducts = async () => {
     let accessToken = localStorage.getItem("access-token");
-    console.log(accessToken);
 
     if (!accessToken) {
       navigate("/login");
@@ -58,13 +48,13 @@ const Home = () => {
     }
 
     try {
-      const response = await axios.get("http://localhost:5001/product", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await api.get(
+        `/product?page=${currentPage}&size=${itemsPerPage}`
+      );
 
-      setProducts(response.data);
+      setProducts(response.data.products);
+      setTotalPagesCount(response.data.totalPagesCount);
+      setCurrentPage(response.data.currentPage);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         // Token expired
@@ -80,7 +70,7 @@ const Home = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [currentPage]);
 
   return (
     <>
@@ -101,7 +91,7 @@ const Home = () => {
             </tr>
           </thead>
           <tbody>
-            {currentProducts.map((product) => (
+            {products.map((product) => (
               <tr key={product.id}>
                 <td>{product.id}</td>
                 <td>{product.title}</td>
@@ -138,7 +128,7 @@ const Home = () => {
             </li>
 
             {/* Page Numbers */}
-            {Array.from({ length: totalPages }, (_, index) => (
+            {Array.from({ length: totalPagesCount }, (_, index) => (
               <li
                 key={index + 1}
                 className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
@@ -154,12 +144,12 @@ const Home = () => {
 
             {/* Next Button */}
             <li
-              className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
+              className={`page-item ${currentPage === totalPagesCount ? "disabled" : ""}`}
             >
               <button
                 className="page-link"
                 onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPagesCount}
               >
                 Next
               </button>
