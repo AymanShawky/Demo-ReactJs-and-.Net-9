@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Logout from "./Logout";
 import api from "../services/api";
 
 const Home = () => {
@@ -74,7 +73,6 @@ const Home = () => {
 
   return (
     <>
-      <Logout />
       <div className="container mt-4" style={{ width: "1200px" }}>
         <h2 className="text-center text-primary mb-4">Products</h2>
         {error && <p className="text-danger">{error}</p>}
